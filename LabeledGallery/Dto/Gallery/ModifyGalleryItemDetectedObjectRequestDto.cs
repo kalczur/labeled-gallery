@@ -3,6 +3,6 @@
 public class ModifyGalleryItemDetectedObjectRequestDto
 {
     public string GalleryItemId { get; set; }
-    public string DetectedObjectNameBefore;
-    public string DetectedObjectNameAfter;
+    public string DetectedObjectNameBefore { get; set; }
+    public string DetectedObjectNameAfter { get; set; }
 }

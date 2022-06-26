@@ -8,5 +8,5 @@ public class GalleryItemResponseDto
     public string Name { get; set; }
     public string Url { get; set; }
     public float TotalAccuracy { get; set; }
-    public List<DetectedObject> DetectedObjects { get; set; } = new List<DetectedObject>();
+    public List<DetectedObject> DetectedObjects { get; set; } = new();
 }

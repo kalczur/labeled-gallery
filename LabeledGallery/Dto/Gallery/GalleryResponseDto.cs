@@ -2,5 +2,5 @@
 
 public class GalleryResponseDto
 {
-    private List<GalleryItemResponseDto> GalleryItems { get; set; } = new List<GalleryItemResponseDto>();
+    public List<GalleryItemResponseDto> GalleryItems { get; set; } = new();
 }
