@@ -1,4 +1,7 @@
-﻿namespace LabeledGallery;
+﻿using LabeledGallery.Services;
+using LabeledGallery.Utils;
+
+namespace LabeledGallery;
 
 public class Startup
 {
@@ -7,17 +10,31 @@ public class Startup
         Configuration = configuration;
     }
 
-    public IConfiguration Configuration { get; }
+    private IConfiguration Configuration { get; }
 
     public void ConfigureServices(IServiceCollection services)
     {
         var settings = new Settings();
         Configuration.Bind(settings);
         
-        services.AddControllers()
-            .AddNewtonsoftJson(options => { options.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter()); });
+        SetupServices(services, settings);
     }
-    
+
+    public static void SetupServices(IServiceCollection services, Settings settings)
+    {
+        services.AddSingleton(new DocumentStoreHolder(settings.Database));
+        
+        services.AddScoped<IUserService, UserService>();
+        
+        services.AddControllers()
+            .AddControllersAsServices()
+            .AddNewtonsoftJson(options =>
+            {
+                options.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
+                
+            });
+    }
+
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
     {
         app.UseRouting();
@@ -26,5 +43,10 @@ public class Startup
         {
             endpoints.MapControllers();
         });
+        
+        if (env.IsProduction())
+        {
+            app.UseHttpsRedirection();
+        }
     }
 }
