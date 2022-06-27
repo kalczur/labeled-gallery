@@ -10,7 +10,7 @@ namespace LabeledGallery.Controllers;
 [ApiController]
 public class UserController : ControllerBase
 {
-    private IUserService _userService;
+    private readonly IUserService _userService;
     public UserController(IUserService userService)
     {
         _userService = userService;
@@ -20,35 +20,10 @@ public class UserController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Register(RegisterRequestDto dto)
     {
-        // TODO - add validation
-
-        var isMailAlreadyExist = await _userService.IsEmailAlreadyExist(dto.Email);
-
-        if (isMailAlreadyExist)
-        {
-            return BadRequest();
-        }
-
-        var passwordHash = HashUtils.GetStringSha256Hash(dto.Password);
-        var accountLogin = new AccountLogin
-        {
-            Email = dto.Email,
-            Password = passwordHash
-        };
+        if (ModelState.IsValid == false)
+            return BadRequest(ModelState);
         
-        await _userService.CreateAccountLogin(accountLogin);
-        
-        var account = new Account
-        {
-            Email = dto.Email,
-            Name = dto.Name,
-            Options = new AccountOptions
-            {
-                ObjectsDetectionProvider = dto.ObjectsDetectionProvider
-            }
-        };
-        
-        await _userService.CreateAccount(account);
+        await _userService.Register(dto);
         
         return Ok();
     }

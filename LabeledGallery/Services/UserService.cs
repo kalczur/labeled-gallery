@@ -1,6 +1,6 @@
-﻿using LabeledGallery.Models.User;
+﻿using LabeledGallery.Dto.User;
+using LabeledGallery.Models.User;
 using LabeledGallery.Utils;
-using Raven.Client.Documents;
 
 namespace LabeledGallery.Services;
 
@@ -12,34 +12,32 @@ public class UserService : IUserService
     {
         _storeHolder = storeHolder;
     }
-    
-    public async Task<bool> IsEmailAlreadyExist(string email)
+
+    public async Task Register(RegisterRequestDto dto)
     {
-        using (var session = _storeHolder.OpenAsyncSession())
+        var passwordHash = HashUtils.GetStringSha256Hash(dto.Password);
+        var accountLogin = new AccountLogin
         {
-            var accountLogin = await session
-                .Query<AccountLogin>()
-                .SingleOrDefaultAsync(x => x.Email == email);
-
-            return accountLogin != null;
-        }
-    }
-
-    public async Task CreateAccountLogin(AccountLogin accountLogin)
-    {
+            Email = dto.Email,
+            Password = passwordHash
+        };
+        
+        var account = new Account
+        {
+            Email = dto.Email,
+            Name = dto.Name,
+            Options = new AccountOptions
+            {
+                ObjectsDetectionProvider = dto.ObjectsDetectionProvider.Value
+            }
+        };
+        
         using (var session = _storeHolder.OpenAsyncSession())
         {
             await session.StoreAsync(accountLogin);
-            await session.SaveChangesAsync();
-        }
-    }
-
-    public async Task CreateAccount(Account account)
-    {
-        using (var session = _storeHolder.OpenAsyncSession())
-        {
             await session.StoreAsync(account);
             await session.SaveChangesAsync();
         }
     }
+    
 }
