@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace LabeledGallery.Controllers;
 
 [ApiController]
+[Route("/api/v1/user/")]
 public class UserController : ControllerBase
 {
     private readonly IUserService _userService;
@@ -16,7 +17,7 @@ public class UserController : ControllerBase
         _userService = userService;
     }
     
-    [Route("/api/v1/user/register")]
+    [Route("register")]
     [HttpPost]
     public async Task<IActionResult> Register(RegisterRequestDto dto)
     {
@@ -28,7 +29,7 @@ public class UserController : ControllerBase
         return Ok();
     }
     
-    [Route("/api/v1/user/login")]
+    [Route("login")]
     [HttpPost]
     public async Task<IActionResult> Login(LoginRequestDto dto)
     {
@@ -36,7 +37,7 @@ public class UserController : ControllerBase
         return Ok();
     }
     
-    [Route("/api/v1/user/info")]
+    [Route("info")]
     [HttpGet]
     public async Task<IActionResult> GetUserInfo()
     {

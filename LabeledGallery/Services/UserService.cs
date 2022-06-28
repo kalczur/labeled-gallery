@@ -6,7 +6,7 @@ namespace LabeledGallery.Services;
 
 public class UserService : IUserService
 {
-    private DocumentStoreHolder _storeHolder;
+    private readonly DocumentStoreHolder _storeHolder;
     
     public UserService(DocumentStoreHolder storeHolder)
     {

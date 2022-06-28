@@ -5,9 +5,10 @@ using Microsoft.AspNetCore.Mvc;
 namespace LabeledGallery.Controllers;
 
 [ApiController]
+[Route("/api/v1/")]
 public class GalleryController : ControllerBase
 {
-    [Route("/api/v1/gallery")]
+    [Route("gallery")]
     [HttpGet]
     public async Task<IActionResult> GetGallery()
     {
@@ -15,7 +16,7 @@ public class GalleryController : ControllerBase
         return Ok(GetValidGalleryResponse());
     }
     
-    [Route("/api/v1/gallery/add-gallery-item-detected-objects")]
+    [Route("add-gallery-item-detected-objects")]
     [HttpPost]
     public async Task<IActionResult> AddGalleryItemDetectedObject(AddGalleryItemDetectedObjectsRequestDto dto)
     {
@@ -23,7 +24,7 @@ public class GalleryController : ControllerBase
         return Ok();
     }
     
-    [Route("/api/v1/gallery/modify-gallery-item-detected-object")]
+    [Route("modify-gallery-item-detected-object")]
     [HttpPost]
     public async Task<IActionResult> ModifyGalleryItemDetectedObject(ModifyGalleryItemDetectedObjectRequestDto dto)
     {
@@ -31,7 +32,7 @@ public class GalleryController : ControllerBase
         return Ok();
     }
 
-    [Route("/api/v1/gallery/update-gallery-items")]
+    [Route("update-gallery-items")]
     [HttpPost]
     public async Task<IActionResult> UpdateGalleryItems(UpdateGalleryItemsRequestDto dto)
     {

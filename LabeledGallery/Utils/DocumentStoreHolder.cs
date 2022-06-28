@@ -30,8 +30,8 @@ namespace LabeledGallery.Utils
         
         public void Dispose()
         {
-            _ravendbStore?.Certificate?.Dispose();
-            _ravendbStore?.Dispose();
+            _ravendbStore.Certificate?.Dispose();
+            _ravendbStore.Dispose();
         }
     }
 }
