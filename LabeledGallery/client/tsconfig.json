@@ -1,6 +1,26 @@
 {
-  "extends": "expo/tsconfig.base",
+  "compileOnSave": false,
   "compilerOptions": {
-    "strict": true
-  }
+    "baseUrl": ".",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noImplicitAny": false,
+    "esModuleInterop": true,
+    "noEmitOnError": true,
+    "sourceMap": true,
+    "target": "es2016",
+    "jsx": "react",
+    "lib": [
+      "es2015",
+      "es2016",
+      "esnext",
+      "es2017",
+      "es2017.string",
+      "dom"
+    ]
+  },
+  "exclude": [
+    "node_modules"
+  ],
+  "extends": "expo/tsconfig.base"
 }

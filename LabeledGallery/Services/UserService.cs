@@ -7,7 +7,7 @@ namespace LabeledGallery.Services;
 public class UserService : IUserService
 {
     private readonly DocumentStoreHolder _storeHolder;
-    
+
     public UserService(DocumentStoreHolder storeHolder)
     {
         _storeHolder = storeHolder;
@@ -21,7 +21,7 @@ public class UserService : IUserService
             Email = dto.Email,
             Password = passwordHash
         };
-        
+
         var account = new Account
         {
             Email = dto.Email,
@@ -31,7 +31,7 @@ public class UserService : IUserService
                 ObjectsDetectionProvider = dto.ObjectsDetectionProvider.Value
             }
         };
-        
+
         using (var session = _storeHolder.OpenAsyncSession())
         {
             await session.StoreAsync(accountLogin);
@@ -39,5 +39,4 @@ public class UserService : IUserService
             await session.SaveChangesAsync();
         }
     }
-    
 }

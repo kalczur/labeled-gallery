@@ -2,7 +2,6 @@
 using LabeledGallery.Models.Gallery;
 using LabeledGallery.Models.User;
 using LabeledGallery.Services;
-using LabeledGallery.Utils;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LabeledGallery.Controllers;
@@ -12,23 +11,20 @@ namespace LabeledGallery.Controllers;
 public class UserController : ControllerBase
 {
     private readonly IUserService _userService;
+
     public UserController(IUserService userService)
     {
         _userService = userService;
     }
-    
+
     [Route("register")]
     [HttpPost]
     public async Task<IActionResult> Register(RegisterRequestDto dto)
     {
-        if (ModelState.IsValid == false)
-            return BadRequest(ModelState);
-        
         await _userService.Register(dto);
-        
         return Ok();
     }
-    
+
     [Route("login")]
     [HttpPost]
     public async Task<IActionResult> Login(LoginRequestDto dto)
@@ -36,7 +32,7 @@ public class UserController : ControllerBase
         // TODO - implement
         return Ok();
     }
-    
+
     [Route("info")]
     [HttpGet]
     public async Task<IActionResult> GetUserInfo()

@@ -1,5 +1,6 @@
 ﻿using LabeledGallery.Services;
 using LabeledGallery.Utils;
+using Newtonsoft.Json.Converters;
 
 namespace LabeledGallery;
 
@@ -16,37 +17,43 @@ public class Startup
     {
         var settings = new Settings();
         Configuration.Bind(settings);
-        
+
+        services.AddCors(c =>
+        {
+            c.AddPolicy("AllowOrigin", options =>
+            {
+                options.AllowAnyOrigin();
+                options.AllowAnyHeader();
+                options.AllowAnyMethod();
+            });
+        });
+
         SetupServices(services, settings);
     }
 
     public static void SetupServices(IServiceCollection services, Settings settings)
     {
         services.AddSingleton(new DocumentStoreHolder(settings.Database));
-        
+
         services.AddScoped<IUserService, UserService>();
-        
+
         services.AddControllers()
             .AddControllersAsServices()
-            .AddNewtonsoftJson(options =>
-            {
-                options.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
-                
-            });
+            .AddNewtonsoftJson(options => { options.SerializerSettings.Converters.Add(new StringEnumConverter()); });
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
     {
         app.UseRouting();
-        
-        app.UseEndpoints(endpoints =>
+        app.UseCors(options =>
         {
-            endpoints.MapControllers();
+            options.AllowAnyOrigin();
+            options.AllowAnyHeader();
+            options.AllowAnyMethod();
         });
-        
-        if (env.IsProduction())
-        {
-            app.UseHttpsRedirection();
-        }
+
+        app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+
+        if (env.IsProduction()) app.UseHttpsRedirection();
     }
 }
