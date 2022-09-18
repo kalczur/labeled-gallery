@@ -1,6 +1,7 @@
 ﻿using LabeledGallery.Dto.User;
 using LabeledGallery.Models.User;
 using LabeledGallery.Utils;
+using Raven.Client.Documents;
 
 namespace LabeledGallery.Services;
 
@@ -28,15 +29,31 @@ public class UserService : IUserService
             Name = dto.Name,
             Options = new AccountOptions
             {
-                ObjectsDetectionProvider = dto.ObjectsDetectionProvider.Value
+                ObjectsDetectionProvider = dto.ObjectsDetectionProvider!.Value
             }
         };
 
-        using (var session = _storeHolder.OpenAsyncSession())
-        {
-            await session.StoreAsync(accountLogin);
-            await session.StoreAsync(account);
-            await session.SaveChangesAsync();
-        }
+        using var session = _storeHolder.OpenAsyncSession();
+
+        await session.StoreAsync(accountLogin);
+        await session.StoreAsync(account);
+        await session.SaveChangesAsync();
+    }
+
+    public async Task<AccountLogin?> Login(LoginRequestDto dto)
+    {
+        var passwordHash = HashUtils.GetStringSha256Hash(dto.Password);
+
+        using var session = _storeHolder.OpenAsyncSession();
+
+        return await session.Query<AccountLogin>()
+            .SingleOrDefaultAsync(x => x.Email == dto.Email && x.Password == passwordHash);
+    }
+
+    public Task<Account> GetAccountForAccountLogin(AccountLogin accountLogin)
+    {
+        using var session = _storeHolder.OpenAsyncSession();
+
+        return session.Query<Account>().SingleAsync(x => x.Email == accountLogin.Email);
     }
 }

@@ -6,7 +6,7 @@ namespace LabeledGallery.Controllers;
 
 [ApiController]
 [Route("/api/v1/")]
-public class GalleryController : ControllerBase
+public class GalleryController : AbstractController
 {
     [Route("gallery")]
     [HttpGet]

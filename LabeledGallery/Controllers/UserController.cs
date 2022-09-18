@@ -1,20 +1,25 @@
 ﻿using LabeledGallery.Dto.User;
-using LabeledGallery.Models.Gallery;
 using LabeledGallery.Models.User;
 using LabeledGallery.Services;
+using LabeledGallery.Utils.Auth;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LabeledGallery.Controllers;
 
 [ApiController]
 [Route("/api/v1/user/")]
-public class UserController : ControllerBase
+public class UserController : AbstractController
 {
+    private readonly ISignInManager _signInManager;
+    private readonly UserManager<AccountLogin> _userManager;
     private readonly IUserService _userService;
 
-    public UserController(IUserService userService)
+    public UserController(IUserService userService, ISignInManager signInManager, UserManager<AccountLogin> userManager)
     {
         _userService = userService;
+        _signInManager = signInManager;
+        _userManager = userManager;
     }
 
     [Route("register")]
@@ -29,7 +34,20 @@ public class UserController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Login(LoginRequestDto dto)
     {
-        // TODO - implement
+        var accountLogin = await _userService.Login(dto);
+
+        if (accountLogin == null)
+            return BadRequest();
+
+        await _signInManager.SignInAsync(accountLogin);
+        return Ok();
+    }
+
+    [Route("/api/v1/logout")]
+    [HttpPost]
+    public async Task<IActionResult> Logout()
+    {
+        await _signInManager.SignOutAsync();
         return Ok();
     }
 
@@ -37,26 +55,24 @@ public class UserController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetUserInfo()
     {
-        // TODO - implement
-        return Ok(GetValidUserInfo());
-    }
+        var identity = HttpContext.User.Identity;
 
-    // STUBS
+        if (identity?.IsAuthenticated == false)
+            return Ok(new UserInfoDto { IsAuthenticated = false });
 
-    private static UserInfoDto GetValidUserInfo()
-    {
-        return new UserInfoDto
+        var accountLogin = await GetCurrentAccountLogin(_userManager);
+
+        if (accountLogin == null)
+            return NotFound();
+
+        var accountResults = await _userService.GetAccountForAccountLogin(accountLogin);
+
+        var accountDto = AccountDto.FromModel(accountResults);
+
+        return Ok(new UserInfoDto
         {
             IsAuthenticated = true,
-            Account = new AccountDto
-            {
-                Email = "some@mail.net",
-                Name = "some-name",
-                Options = new AccountOptions
-                {
-                    ObjectsDetectionProvider = ObjectsDetectionProvider.Gcp
-                }
-            }
-        };
+            Account = accountDto
+        });
     }
 }
