@@ -43,7 +43,7 @@ public class UserController : AbstractController
         return Ok();
     }
 
-    [Route("/api/v1/logout")]
+    [Route("logout")]
     [HttpPost]
     public async Task<IActionResult> Logout()
     {
@@ -61,10 +61,6 @@ public class UserController : AbstractController
             return Ok(new UserInfoDto { IsAuthenticated = false });
 
         var accountLogin = await GetCurrentAccountLogin(_userManager);
-
-        if (accountLogin == null)
-            return NotFound();
-
         var accountResults = await _userService.GetAccountForAccountLogin(accountLogin);
 
         var accountDto = AccountDto.FromModel(accountResults);

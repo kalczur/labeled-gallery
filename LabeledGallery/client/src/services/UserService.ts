@@ -12,12 +12,11 @@ export class UserService {
   }
 
   async getUserInfo(): Promise<UserInfoDto> {
-    console.log("getUserInfo");
     const response = await apiClient.get<UserInfoDto>("user/info");
     return response.data;
   }
 
   async logout(): Promise<void> {
-    await apiClient.get("user/logout");
+    await apiClient.post<void>("user/logout");
   }
 }

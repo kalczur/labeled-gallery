@@ -50,10 +50,10 @@ public class UserService : IUserService
             .SingleOrDefaultAsync(x => x.Email == dto.Email && x.Password == passwordHash);
     }
 
-    public Task<Account> GetAccountForAccountLogin(AccountLogin accountLogin)
+    public async Task<Account> GetAccountForAccountLogin(AccountLogin accountLogin)
     {
         using var session = _storeHolder.OpenAsyncSession();
 
-        return session.Query<Account>().SingleAsync(x => x.Email == accountLogin.Email);
+        return await session.Query<Account>().SingleAsync(x => x.Email == accountLogin.Email);
     }
 }

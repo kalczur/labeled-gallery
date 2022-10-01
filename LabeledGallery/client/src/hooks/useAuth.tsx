@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { UserService } from "../services/UserService";
 import { LoginDto, UserInfoDto } from "../models/UserModels";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Text } from "react-native";
 
 interface UserContextDto {
   userInfo: UserInfoDto;
@@ -13,45 +13,45 @@ const userService = new UserService();
 
 const authContext = createContext<UserContextDto>(undefined);
 
-export function ProvideAuth({ children }) {
+export const ProvideAuth = ({ children }) => {
   const auth = useProvideAuth();
+
   if (auth.userInfo) {
     return <authContext.Provider value={ auth }>{ children }</authContext.Provider>;
   } else {
-    return <div>Loading...</div>;
+    return <Text>The server is not responding. Try again later.</Text>;
   }
-}
+};
 
 export const useAuth = () => {
   return useContext(authContext);
 };
 
-function useProvideAuth(): UserContextDto {
+const useProvideAuth = (): UserContextDto => {
   const [userInfo, setUserInfo] = useState<UserInfoDto>();
-  const queryClient = useQueryClient();
 
-  useQuery(["getUserInfo"], userService.getUserInfo, {
-    onSuccess: (x) => {
-      setUserInfo(x);
-    },
-  });
+  const reloadUserInfo = useCallback(async () => {
+    const adminInfo = await userService.getUserInfo();
+    setUserInfo(adminInfo);
+  }, [userService, setUserInfo]);
 
-  const reloadMutation = useMutation(userService.getUserInfo, {
-    onSuccess: (x) => {
-      setUserInfo(x);
-    },
-  });
+  const logout = async () => {
+    await userService.logout();
+    await reloadUserInfo();
+  };
 
-  const logoutMutation = useMutation(userService.logout, {
-    onSuccess: async () => {
-      await queryClient.invalidateQueries(["logout"]);
-      reloadMutation.mutate();
-    },
-  });
+  const login = async (dto: LoginDto) => {
+    await userService.login(dto);
+    await reloadUserInfo();
+  };
+
+  useEffect(() => {
+    reloadUserInfo();
+  }, [reloadUserInfo]);
 
   return {
     userInfo,
-    login: (dto: LoginDto) => userService.login(dto),
-    logout: logoutMutation.mutate,
+    login,
+    logout,
   };
-}
+};

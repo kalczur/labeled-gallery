@@ -1,39 +1,27 @@
 ﻿import React from "react";
-import { Button, TextInput, View } from "react-native";
+import { Button, Text, TextInput, View } from "react-native";
 import { Formik } from "formik";
-import { UserService } from "../../../services/UserService";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../../../hooks/useAuth";
 import { LoginDto } from "../../../models/UserModels";
-
-const userService = new UserService();
 
 interface Props {
   navigation: any;
 }
 
 const LoginPage = ({ navigation }: Props) => {
-  const { userInfo } = useAuth();
+  const { userInfo, login } = useAuth();
 
   if (userInfo.isAuthenticated) {
     navigation.navigate("GalleryPage");
   }
 
-  const queryClient = useQueryClient();
-
-  const loginMutation = useMutation(userService.login, {
-    onSuccess: async () => {
-      await queryClient.invalidateQueries(["login"]);
-    },
-  });
-
   return (
     <View>
       <Formik<LoginDto>
         initialValues={ { email: "", password: "" } }
-        onSubmit={ values => loginMutation.mutate(values) }
+        onSubmit={ values => login(values) }
       >
-        { ({ handleChange, handleSubmit, values }) => (
+        { ({ handleChange, handleSubmit, values, isSubmitting, errors }) => (
           <View>
             <TextInput
               placeholder='Email'
@@ -48,6 +36,8 @@ const LoginPage = ({ navigation }: Props) => {
             />
 
             <Button onPress={ () => handleSubmit() } title='Login' />
+
+            { isSubmitting && <Text>Loading...</Text> }
           </View>
         ) }
       </Formik>
@@ -57,8 +47,6 @@ const LoginPage = ({ navigation }: Props) => {
         onPress={ () => navigation.navigate("RegisterPage") }
       />
 
-      { loginMutation.error && <div>Error</div> }
-      { loginMutation.isLoading && <div>Loading...</div> }
     </View>
   );
 };

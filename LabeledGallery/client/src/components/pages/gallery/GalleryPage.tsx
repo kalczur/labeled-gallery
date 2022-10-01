@@ -1,22 +1,24 @@
 import React from "react";
 import { useAuth } from "../../../hooks/useAuth";
+import { Button, Text, View } from "react-native";
 
 interface Props {
   navigation: any;
 }
 
 const GalleryPage = ({ navigation }: Props) => {
-  const { userInfo } = useAuth();
+  const { userInfo, logout } = useAuth();
 
   if (!userInfo.isAuthenticated) {
     navigation.navigate("LoginPage");
   }
-  
+
   return (
-    <div>
-      <div>Name: { userInfo.account.name }</div>
-      <div>Email: { userInfo.account.email }</div>
-    </div>
+    <View>
+      <Button onPress={ logout } title='Logout' />
+      <Text>Name: { userInfo.account.name }</Text>
+      <Text>Email: { userInfo.account.email }</Text>
+    </View>
   );
 };
 

@@ -1,5 +1,5 @@
 ﻿import React from "react";
-import { Button, TextInput, View } from "react-native";
+import { Button, Text, TextInput, View } from "react-native";
 import { Formik } from "formik";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { UserService } from "../../../services/UserService";
@@ -72,8 +72,8 @@ const RegisterPage = ({ navigation }: Props) => {
         onPress={ () => navigation.navigate("LoginPage") }
       />
 
-      { registerMutation.error && <div>Error</div> }
-      { registerMutation.isLoading && <div>Loading...</div> }
+      { registerMutation.error && <Text>Error</Text> }
+      { registerMutation.isLoading && <Text>Loading...</Text> }
     </View>
   );
 };

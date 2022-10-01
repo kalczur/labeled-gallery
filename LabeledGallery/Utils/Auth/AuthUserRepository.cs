@@ -54,28 +54,13 @@ public class AuthUserRepository : IAuthUserRepository
     {
         try
         {
-            await _session.StoreAsync(accountLogin);
+            await _session.StoreAsync(accountLogin, cancellationToken);
             await _session.SaveChangesAsync(cancellationToken);
             return IdentityResult.Success;
         }
         catch (Exception e)
         {
             _logger.LogError(e, $"Failed to update customer {accountLogin.Email}");
-            return IdentityResult.Failed(new IdentityError { Description = e.Message });
-        }
-    }
-
-    public async Task<IdentityResult> DeleteAsync(AccountLogin accountLogin, CancellationToken cancellationToken)
-    {
-        try
-        {
-            _session.Delete(accountLogin);
-            await _session.SaveChangesAsync(cancellationToken);
-            return IdentityResult.Success;
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, $"Failed to delete customer {accountLogin.Email}");
             return IdentityResult.Failed(new IdentityError { Description = e.Message });
         }
     }
