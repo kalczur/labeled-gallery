@@ -2,7 +2,5 @@
 
 public class UpdateGalleryItemsRequestDto
 {
-    public string Name { get; set; }
-    public List<IFormFile> ImagesToAdd { get; set; } = new();
-    public List<string> GalleryItemIdsToRemove { get; set; } = new();
+    public List<IFormFile> ImagesToAdd { get; set; }
 }

@@ -6,5 +6,5 @@ public class Account
     public string Email { get; set; }
     public string Name { get; set; }
     public AccountOptions Options { get; set; }
-    public string? GalleryId { get; set; }
+    public string GalleryId { get; set; }
 }

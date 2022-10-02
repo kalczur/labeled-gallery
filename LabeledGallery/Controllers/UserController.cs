@@ -2,6 +2,7 @@
 using LabeledGallery.Models.User;
 using LabeledGallery.Services;
 using LabeledGallery.Utils.Auth;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -43,6 +44,7 @@ public class UserController : AbstractController
         return Ok();
     }
 
+    [Authorize]
     [Route("logout")]
     [HttpPost]
     public async Task<IActionResult> Logout()

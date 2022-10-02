@@ -1,47 +1,57 @@
 ﻿using LabeledGallery.Dto.Gallery;
 using LabeledGallery.Models.Gallery;
+using LabeledGallery.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LabeledGallery.Controllers;
 
+[Authorize]
 [ApiController]
-[Route("/api/v1/")]
+[Route("/api/v1/gallery/")]
 public class GalleryController : AbstractController
 {
-    [Route("gallery")]
+    private readonly IGalleryService _galleryService;
+
+    public GalleryController(IGalleryService galleryService)
+    {
+        _galleryService = galleryService;
+    }
+
+    [Route("get")]
     [HttpGet]
     public async Task<IActionResult> GetGallery()
     {
         // TODO - implement
         return Ok(GetValidGalleryResponse());
     }
-    
-    [Route("add-gallery-item-detected-objects")]
+
+    [Route("add-detected-objects")]
     [HttpPost]
-    public async Task<IActionResult> AddGalleryItemDetectedObject(AddGalleryItemDetectedObjectsRequestDto dto)
-    {
-        // TODO - implement
-        return Ok();
-    }
-    
-    [Route("modify-gallery-item-detected-object")]
-    [HttpPost]
-    public async Task<IActionResult> ModifyGalleryItemDetectedObject(ModifyGalleryItemDetectedObjectRequestDto dto)
+    public async Task<IActionResult> AddDetectedObject(AddGalleryItemDetectedObjectsRequestDto dto)
     {
         // TODO - implement
         return Ok();
     }
 
-    [Route("update-gallery-items")]
+    [Route("modify-detected-object")]
     [HttpPost]
-    public async Task<IActionResult> UpdateGalleryItems(UpdateGalleryItemsRequestDto dto)
+    public async Task<IActionResult> ModifyDetectedObject(ModifyGalleryItemDetectedObjectRequestDto dto)
     {
         // TODO - implement
         return Ok();
     }
-    
+
+    [Route("update")]
+    [HttpPost]
+    public async Task<IActionResult> Update([FromForm] UpdateGalleryItemsRequestDto dto)
+    {
+        await _galleryService.UpdateGalleryItems(dto, AccountEmail);
+        return Ok();
+    }
+
     // STUBS
-    
+
     private static GalleryResponseDto GetValidGalleryResponse()
     {
         return new GalleryResponseDto
@@ -50,6 +60,7 @@ public class GalleryController : AbstractController
             {
                 new()
                 {
+                    Id = "id-1",
                     Name = "g-item-1",
                     Url = "https://some-url-1.net",
                     TotalAccuracy = 1.86f,
@@ -69,6 +80,7 @@ public class GalleryController : AbstractController
                 },
                 new()
                 {
+                    Id = "id-2",
                     Name = "g-item-2",
                     Url = "https://some-url-2.net",
                     TotalAccuracy = 2.1f,

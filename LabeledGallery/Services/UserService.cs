@@ -1,4 +1,5 @@
 ﻿using LabeledGallery.Dto.User;
+using LabeledGallery.Models.Gallery;
 using LabeledGallery.Models.User;
 using LabeledGallery.Utils;
 using Raven.Client.Documents;
@@ -33,11 +34,18 @@ public class UserService : IUserService
             }
         };
 
-        using var session = _storeHolder.OpenAsyncSession();
+        using (var session = _storeHolder.OpenAsyncSession())
+        {
+            await session.StoreAsync(accountLogin);
+            await session.StoreAsync(account);
 
-        await session.StoreAsync(accountLogin);
-        await session.StoreAsync(account);
-        await session.SaveChangesAsync();
+            var gallery = new Gallery { AccountId = account.Id };
+            await session.StoreAsync(gallery);
+
+            account.GalleryId = gallery.Id;
+
+            await session.SaveChangesAsync();
+        }
     }
 
     public async Task<AccountLogin?> Login(LoginRequestDto dto)

@@ -1,4 +1,5 @@
-﻿using LabeledGallery.Models.User;
+﻿using Google.Cloud.Vision.V1;
+using LabeledGallery.Models.User;
 using LabeledGallery.Services;
 using LabeledGallery.Utils;
 using LabeledGallery.Utils.Auth;
@@ -45,7 +46,16 @@ public class Startup
 
         services.AddHttpClient();
 
+        services.AddSingleton<ImageAnnotatorClient>(serviceProvider =>
+        {
+            return new ImageAnnotatorClientBuilder
+            {
+                CredentialsPath = "gcp-cloud-vision-creds.json"
+            }.Build();
+        });
+
         services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IGalleryService, GalleryService>();
 
         services.AddScoped(serviceProvider =>
         {
