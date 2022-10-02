@@ -1,6 +1,6 @@
 import React from "react";
 import { useAuth } from "../../../hooks/useAuth";
-import { Button, Text, View } from "react-native";
+import { Button, Image, ScrollView, Text, View } from "react-native";
 import * as MediaLibrary from "expo-media-library";
 import { GalleryService } from "../../../services/GalleryService";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -42,7 +42,7 @@ const GalleryPage = ({ navigation }: Props) => {
   };
 
   return (
-    <View>
+    <ScrollView>
       <Button onPress={ logout } title='Logout' />
       <Button onPress={ sendAlbumPhotos } title='Send photos from album' />
 
@@ -53,14 +53,19 @@ const GalleryPage = ({ navigation }: Props) => {
       <Text>Email: { userInfo.account.email }</Text>
 
       <View>
-        { galleryData.galleryItems.map(x =>
-          <View key={ x.id }>
-            <Text>{ x.name }: { x.totalAccuracy }</Text>
+        { galleryData.galleryItems && galleryData.galleryItems.map(x =>
+          <View key={ x.name } style={ { marginTop: 20 } }>
+            <Text>{ x.name }</Text>
+            <Image
+              source={ { uri: x.image } }
+              style={ { width: 100, height: 100 } } />
+
+            <Text>{ x.detectedObjects.map((objects) => <Text>{ objects.label }, </Text>) }</Text>
           </View>,
         ) }
       </View>
 
-    </View>
+    </ScrollView>
   );
 };
 

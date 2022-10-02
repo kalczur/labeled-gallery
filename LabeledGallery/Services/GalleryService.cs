@@ -4,6 +4,7 @@ using LabeledGallery.Models.Gallery;
 using LabeledGallery.Models.User;
 using LabeledGallery.Utils;
 using Raven.Client.Documents;
+using Raven.Client.Documents.Operations.Attachments;
 
 namespace LabeledGallery.Services;
 
@@ -18,8 +19,7 @@ public class GalleryService : IGalleryService
         _storeHolder = storeHolder;
     }
 
-    public async Task
-        UpdateGalleryItems(UpdateGalleryItemsRequestDto dto, string accountEmail)
+    public async Task UpdateGalleryItems(UpdateGalleryItemsRequestDto dto, string accountEmail)
     {
         string galleryId;
         using (var session = _storeHolder.OpenAsyncSession())
@@ -67,6 +67,42 @@ public class GalleryService : IGalleryService
         }
     }
 
+    public async Task<GalleryResponseDto> GetGallery(string accountEmail)
+    {
+        Dictionary<string, GalleryItem> galleryItems;
+
+        using (var session = _storeHolder.OpenAsyncSession())
+        {
+            var account = await session.Query<Account>().SingleAsync(x => x.Email == accountEmail);
+            var gallery = await session.LoadAsync<Gallery>(account.GalleryId);
+
+            galleryItems = await session.LoadAsync<GalleryItem>(gallery.GalleryItemIds);
+        }
+
+
+        var galleryDto = new GalleryResponseDto();
+
+        foreach (var galleryItem in galleryItems.Values)
+        {
+            using (var session = _storeHolder.OpenAsyncSession())
+            {
+                var attachmentRequest = new List<AttachmentRequest> { new(galleryItem.Id, galleryItem.Name + ".jpg") };
+
+                var attachments = await session.Advanced.Attachments.GetAsync(attachmentRequest);
+                attachments.MoveNext();
+
+                galleryDto.GalleryItems.Add(new GalleryItemResponseDto
+                {
+                    Name = galleryItem.Name,
+                    DetectedObjects = galleryItem.DetectedObjects,
+                    Image = GetImageUrl(galleryItem.Id, galleryItem.Name)
+                });
+            }
+        }
+
+        return galleryDto;
+    }
+
     private static async Task<MemoryStream> GetImageStream(IFormFile imageFile)
     {
         MemoryStream imageStream;
@@ -78,5 +114,12 @@ public class GalleryService : IGalleryService
         }
 
         return imageStream;
+    }
+
+    // TODO just temp solution - it can't be done that way!
+    private static string GetImageUrl(string id, string name)
+    {
+        return
+            $"http://10.0.2.2:8080/databases/labeled-gallery/attachments?id=GalleryItems%2F{id.Split("/")[1]}&name={name}.jpg";
     }
 }

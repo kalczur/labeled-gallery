@@ -18,14 +18,14 @@ export class GalleryService {
     dto.imagesToAdd.forEach(x => {
       const uri = normalizeUri(x);
 
-      const images = {
+      const image = {
         uri: uri,
         type: mime.getType(uri),
         name: uri.split("/").pop(),
       };
 
       // @ts-ignore
-      formData.append("imagesToAdd", images);
+      formData.append("imagesToAdd", image);
     });
 
     await apiClient.post<UpdateGalleryItemsRequestDto>("gallery/update", formData, {

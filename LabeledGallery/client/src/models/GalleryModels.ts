@@ -3,10 +3,8 @@
 }
 
 export interface GalleryItemResponseDto {
-  id: string;
   name: string;
-  url: string;
-  totalAccuracy: string;
+  image: string;
   detectedObjects: DetectedObject[];
 }
 
