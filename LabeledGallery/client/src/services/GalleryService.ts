@@ -1,13 +1,13 @@
 import { apiClient } from "./ApiClient";
-import { GalleryResponseDto, UpdateGalleryItemsRequestDto } from "../models/GalleryModels";
+import { GalleryResponseDto, GetGalleryRequestDto, UpdateGalleryItemsRequestDto } from "../models/GalleryModels";
 import mime from "mime";
 
 const normalizeUri = (uri: string) => "file:///" + uri.split("file:/").join("");
 
 export class GalleryService {
 
-  async get(): Promise<GalleryResponseDto> {
-    const result = await apiClient.get<GalleryResponseDto>("gallery/get");
+  async get(dto?: GetGalleryRequestDto): Promise<GalleryResponseDto> {
+    const result = await apiClient.post<GalleryResponseDto>("gallery/get", dto);
     return result.data;
   }
 

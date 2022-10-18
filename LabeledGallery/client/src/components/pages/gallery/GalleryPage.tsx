@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { useAuth } from "../../../hooks/useAuth";
-import { Button, Image, ScrollView, Text, View } from "react-native";
+import { Button, Image, ScrollView, Text, TextInput, View } from "react-native";
 import * as MediaLibrary from "expo-media-library";
 import { GalleryService } from "../../../services/GalleryService";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { GalleryResponseDto } from "../../../models/GalleryModels";
+import { GalleryResponseDto, GetGalleryRequestDto } from "../../../models/GalleryModels";
+import { Formik } from "formik";
 
 const galleryService = new GalleryService();
 
@@ -15,17 +16,33 @@ interface Props {
 const GalleryPage = ({ navigation }: Props) => {
   const { userInfo, logout } = useAuth();
   const [_, requestPermission] = MediaLibrary.usePermissions();
+  const [galleryData, setGalleryData] = useState<GalleryResponseDto>();
 
   if (!userInfo.isAuthenticated) {
     navigation.navigate("LoginPage");
   }
 
-  const { data: galleryData, isLoading, error } = useQuery<GalleryResponseDto>(["getGallery"], galleryService.get);
+  const {
+    isLoading,
+    error,
+  } = useQuery<GalleryResponseDto>(["getGallery"], () => galleryService.get({ searchKeyword: "" }), {
+    onSuccess: async (data: GalleryResponseDto) => {
+      setGalleryData(data);
+    },
+  });
 
-  if (isLoading) return <View><Text>Loading...</Text></View>;
-  if (error) return <View><Text>Error</Text></View>;
+  if (isLoading) return <View><Text>Loading gallery...</Text></View>;
+  if (error) return <View><Text>Failed to load gallery</Text></View>;
 
   const queryClient = useQueryClient();
+
+  const getGalleryMutation = useMutation(galleryService.get, {
+    onSuccess: async (data: GalleryResponseDto) => {
+      setGalleryData(data);
+      await queryClient.invalidateQueries(["get"]);
+    },
+  });
+
   const updateGalleryMutation = useMutation(galleryService.update, {
     onSuccess: async () => {
       await queryClient.invalidateQueries(["updateGallery"]);
@@ -46,14 +63,32 @@ const GalleryPage = ({ navigation }: Props) => {
       <Button onPress={ logout } title='Logout' />
       <Button onPress={ sendAlbumPhotos } title='Send photos from album' />
 
+      <Formik<GetGalleryRequestDto>
+        initialValues={ { searchKeyword: "" } }
+        onSubmit={ values => getGalleryMutation.mutate(values) }
+      >
+        { ({ handleChange, handleSubmit, values }) => (
+          <View style={ { display: "flex" } }>
+            <TextInput
+              placeholder=''
+              onChangeText={ handleChange("searchKeyword") }
+              value={ values.searchKeyword }
+            />
+            <Button title='Search' onPress={ () => handleSubmit() } />
+          </View>
+        ) }
+      </Formik>
+
       { updateGalleryMutation.isLoading && <Text>Sending photos...</Text> }
       { updateGalleryMutation.error && <Text>Fail to send</Text> }
+
+      { updateGalleryMutation.isLoading && <Text>Loading gallery...</Text> }
 
       <Text>Name: { userInfo.account.name }</Text>
       <Text>Email: { userInfo.account.email }</Text>
 
       <View>
-        { galleryData.galleryItems && galleryData.galleryItems.map(x =>
+        { galleryData && galleryData.galleryItems && galleryData.galleryItems.map(x =>
           <View key={ x.name } style={ { marginTop: 20 } }>
             <Text>{ x.name }</Text>
             <Image
@@ -67,11 +102,6 @@ const GalleryPage = ({ navigation }: Props) => {
 
     </ScrollView>
   );
-};
-
-const getFile = async (path: string) => {
-  const result = await fetch(path);
-  return result.blob();
 };
 
 export default GalleryPage;

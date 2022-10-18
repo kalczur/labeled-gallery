@@ -18,10 +18,10 @@ public class GalleryController : AbstractController
     }
 
     [Route("get")]
-    [HttpGet]
-    public async Task<IActionResult> GetGallery()
+    [HttpPost]
+    public async Task<IActionResult> GetGallery(GetGalleryRequestDto dto)
     {
-        var galleryDto = await _galleryService.GetGallery(AccountEmail);
+        var galleryDto = await _galleryService.GetGallery(dto, AccountEmail);
         return Ok(galleryDto);
     }
 

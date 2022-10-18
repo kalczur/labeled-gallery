@@ -67,22 +67,26 @@ public class GalleryService : IGalleryService
         }
     }
 
-    public async Task<GalleryResponseDto> GetGallery(string accountEmail)
+    public async Task<GalleryResponseDto> GetGallery(GetGalleryRequestDto dto, string accountEmail)
     {
-        Dictionary<string, GalleryItem> galleryItems;
+        List<GalleryItem> galleryItems;
+        var searchKeyword = string.IsNullOrEmpty(dto.SearchKeyword) ? "" : dto.SearchKeyword;
 
         using (var session = _storeHolder.OpenAsyncSession())
         {
             var account = await session.Query<Account>().SingleAsync(x => x.Email == accountEmail);
             var gallery = await session.LoadAsync<Gallery>(account.GalleryId);
 
-            galleryItems = await session.LoadAsync<GalleryItem>(gallery.GalleryItemIds);
+            galleryItems = await session.Query<GalleryItem>()
+                .Where(x =>
+                    x.GalleryId == gallery.Id &&
+                    x.DetectedObjects.Any(y => y.Label.Contains(searchKeyword)))
+                .ToListAsync();
         }
-
 
         var galleryDto = new GalleryResponseDto();
 
-        foreach (var galleryItem in galleryItems.Values)
+        foreach (var galleryItem in galleryItems)
         {
             using (var session = _storeHolder.OpenAsyncSession())
             {

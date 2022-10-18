@@ -1,4 +1,8 @@
-﻿export interface GalleryResponseDto {
+﻿export interface GetGalleryRequestDto {
+  searchKeyword: string;
+}
+
+export interface GalleryResponseDto {
   galleryItems: GalleryItemResponseDto[];
 }
 
