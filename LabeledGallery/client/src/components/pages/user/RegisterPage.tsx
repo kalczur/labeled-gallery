@@ -50,6 +50,7 @@ const RegisterPage = ({ navigation }: Props) => {
 
             <TextInput
               placeholder='Password'
+              secureTextEntry={true}
               onChangeText={ handleChange("password") }
               value={ values.password }
             />
