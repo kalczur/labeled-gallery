@@ -95,6 +95,7 @@ const GalleryPage = ({ navigation }: Props) => {
               source={ { uri: x.image } }
               style={ { width: 100, height: 100 } } />
 
+            <Text>Total accuracy: { x.totalAccuracy }</Text>
             <Text>{ x.detectedObjects.map((objects) => <Text>{ objects.label }, </Text>) }</Text>
           </View>,
         ) }

@@ -10,6 +10,7 @@ export interface GalleryItemResponseDto {
   name: string;
   image: string;
   detectedObjects: DetectedObject[];
+  totalAccuracy: number[];
 }
 
 export interface DetectedObject {

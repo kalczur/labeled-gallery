@@ -72,7 +72,7 @@ public class GalleryService : IGalleryService
 
     public async Task<GalleryResponseDto> GetGallery(GetGalleryRequestDto dto, string accountEmail)
     {
-        List<GalleryItem> galleryItems;
+        List<GalleryItem> sortedGalleryItems;
         var searchKeyword = string.IsNullOrEmpty(dto.SearchKeyword) ? "" : dto.SearchKeyword;
 
         using (var session = OpenAsyncSession())
@@ -80,16 +80,20 @@ public class GalleryService : IGalleryService
             var account = await session.Query<Account>().SingleAsync(x => x.Email == accountEmail);
             var gallery = await session.LoadAsync<Gallery>(account.GalleryId);
 
-            galleryItems = await session.Query<GalleryItem>()
+            var galleryItems = await session.Query<GalleryItem>()
                 .Where(x =>
                     x.GalleryId == gallery.Id &&
                     x.DetectedObjects.Any(y => y.Label.Contains(searchKeyword)))
                 .ToListAsync();
+
+            sortedGalleryItems = galleryItems.OrderByDescending(x =>
+                    x.DetectedObjects.Where(y => y.Label.Contains(searchKeyword)).Sum(y => y.Accuracy))
+                .ToList();
         }
 
         var galleryDto = new GalleryResponseDto();
 
-        foreach (var galleryItem in galleryItems)
+        foreach (var galleryItem in sortedGalleryItems)
         {
             using (var session = OpenAsyncSession())
             {
@@ -98,11 +102,16 @@ public class GalleryService : IGalleryService
                 var attachments = await session.Advanced.Attachments.GetAsync(attachmentRequest);
                 attachments.MoveNext();
 
+                var totalAccuracy = galleryItem.DetectedObjects
+                    .Where(x => x.Label.Contains(dto.SearchKeyword))
+                    .Sum(x => x.Accuracy);
+
                 galleryDto.GalleryItems.Add(new GalleryItemResponseDto
                 {
                     Name = galleryItem.Name,
                     DetectedObjects = galleryItem.DetectedObjects,
-                    Image = GetImageUrl(galleryItem.Id, galleryItem.Name)
+                    Image = GetImageUrl(galleryItem.Id, galleryItem.Name),
+                    TotalAccuracy = totalAccuracy
                 });
             }
         }

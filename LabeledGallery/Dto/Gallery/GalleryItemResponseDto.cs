@@ -7,4 +7,5 @@ public class GalleryItemResponseDto
     public string Name { get; set; }
     public string Image { get; set; }
     public List<DetectedObject> DetectedObjects { get; set; } = new();
+    public float TotalAccuracy { get; set; }
 }
