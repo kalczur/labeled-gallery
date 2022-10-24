@@ -5,6 +5,7 @@ using LabeledGallery.Models.User;
 using LabeledGallery.Utils;
 using Raven.Client.Documents;
 using Raven.Client.Documents.Operations.Attachments;
+using Raven.Client.Documents.Session;
 
 namespace LabeledGallery.Services;
 
@@ -19,10 +20,12 @@ public class GalleryService : IGalleryService
         _storeHolder = storeHolder;
     }
 
+    private IAsyncDocumentSession OpenAsyncSession() => _storeHolder.OpenAsyncSession();
+
     public async Task UpdateGalleryItems(UpdateGalleryItemsRequestDto dto, string accountEmail)
     {
         string galleryId;
-        using (var session = _storeHolder.OpenAsyncSession())
+        using (var session = OpenAsyncSession())
         {
             var account = await session.Query<Account>().SingleAsync(x => x.Email == accountEmail);
             galleryId = account.GalleryId;
@@ -54,7 +57,7 @@ public class GalleryService : IGalleryService
                 DetectedObjects = detectedObject
             };
 
-            using (var session = _storeHolder.OpenAsyncSession())
+            using (var session = OpenAsyncSession())
             {
                 await session.StoreAsync(galleryItem);
                 session.Advanced.Attachments.Store(galleryItem.Id, fileName, imageStream, splitFileName[1]);
@@ -72,7 +75,7 @@ public class GalleryService : IGalleryService
         List<GalleryItem> galleryItems;
         var searchKeyword = string.IsNullOrEmpty(dto.SearchKeyword) ? "" : dto.SearchKeyword;
 
-        using (var session = _storeHolder.OpenAsyncSession())
+        using (var session = OpenAsyncSession())
         {
             var account = await session.Query<Account>().SingleAsync(x => x.Email == accountEmail);
             var gallery = await session.LoadAsync<Gallery>(account.GalleryId);
@@ -88,7 +91,7 @@ public class GalleryService : IGalleryService
 
         foreach (var galleryItem in galleryItems)
         {
-            using (var session = _storeHolder.OpenAsyncSession())
+            using (var session = OpenAsyncSession())
             {
                 var attachmentRequest = new List<AttachmentRequest> { new(galleryItem.Id, galleryItem.Name + ".jpg") };
 
@@ -107,6 +110,59 @@ public class GalleryService : IGalleryService
         return galleryDto;
     }
 
+    public async Task<bool> AddDetectedObject(AddGalleryItemDetectedObjectsRequestDto dto, string accountEmail)
+    {
+        using (var session = OpenAsyncSession())
+        {
+            var galleryItem = await GetGalleryItem(dto.GalleryItemId, accountEmail, session);
+            if (galleryItem == null)
+                return false;
+            
+            galleryItem.DetectedObjects.Add(new DetectedObject
+            {
+                Accuracy = 1,
+                Label = dto.DetectedObject
+            });
+
+            await session.SaveChangesAsync();
+        }
+        
+        return true;
+    }
+    
+    public async Task<bool> ModifyDetectedObject(ModifyGalleryItemDetectedObjectRequestDto dto, string accountEmail)
+    {
+        using (var session = OpenAsyncSession())
+        {
+            var galleryItem = await GetGalleryItem(dto.GalleryItemId, accountEmail, session);
+            if (galleryItem == null)
+                return false;
+
+            var detectedObject = galleryItem.DetectedObjects.SingleOrDefault(x => x.Label == dto.DetectedObjectNameBefore);
+            if (detectedObject == null)
+                return false;
+
+            detectedObject.Label = dto.DetectedObjectNameAfter;
+            detectedObject.Accuracy = 1;
+
+            await session.SaveChangesAsync();
+        }
+        
+        return true;
+    }
+
+    private static async Task<GalleryItem?> GetGalleryItem(string id, string accountEmail, IAsyncDocumentSession session)
+    {
+        var account = await session.Query<Account>().SingleAsync(x => x.Email == accountEmail);
+        var gallery = await session.LoadAsync<Gallery>(account.GalleryId);
+
+        var galleryItemId = gallery.GalleryItemIds.SingleOrDefault(x => x == id);
+
+        if (galleryItemId == null) return null;
+
+        return await session.LoadAsync<GalleryItem>(galleryItemId);
+    }
+    
     private static async Task<MemoryStream> GetImageStream(IFormFile imageFile)
     {
         MemoryStream imageStream;
@@ -120,7 +176,6 @@ public class GalleryService : IGalleryService
         return imageStream;
     }
 
-    // TODO just temp solution - it can't be done that way!
     private static string GetImageUrl(string id, string name)
     {
         return

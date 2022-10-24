@@ -25,11 +25,13 @@ public class GalleryController : AbstractController
         return Ok(galleryDto);
     }
 
-    [Route("add-detected-objects")]
+    [Route("add-detected-object")]
     [HttpPost]
     public async Task<IActionResult> AddDetectedObject(AddGalleryItemDetectedObjectsRequestDto dto)
     {
-        // TODO - implement
+        var succeed = await _galleryService.AddDetectedObject(dto, AccountEmail);
+        if (succeed == false) return BadRequest();
+        
         return Ok();
     }
 
@@ -37,7 +39,9 @@ public class GalleryController : AbstractController
     [HttpPost]
     public async Task<IActionResult> ModifyDetectedObject(ModifyGalleryItemDetectedObjectRequestDto dto)
     {
-        // TODO - implement
+        var succeed = await _galleryService.ModifyDetectedObject(dto, AccountEmail);
+        if (succeed == false) return BadRequest();
+        
         return Ok();
     }
 
