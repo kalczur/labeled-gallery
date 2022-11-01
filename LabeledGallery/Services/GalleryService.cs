@@ -126,7 +126,10 @@ public class GalleryService : IGalleryService
             var galleryItem = await GetGalleryItem(dto.GalleryItemId, accountEmail, session);
             if (galleryItem == null)
                 return false;
-            
+
+            if (galleryItem.DetectedObjects.Exists(x => x.Label == dto.DetectedObject))
+                return false;
+
             galleryItem.DetectedObjects.Add(new DetectedObject
             {
                 Accuracy = 1,
@@ -135,10 +138,10 @@ public class GalleryService : IGalleryService
 
             await session.SaveChangesAsync();
         }
-        
+
         return true;
     }
-    
+
     public async Task<bool> ModifyDetectedObject(ModifyGalleryItemDetectedObjectRequestDto dto, string accountEmail)
     {
         using (var session = OpenAsyncSession())
@@ -156,7 +159,7 @@ public class GalleryService : IGalleryService
 
             await session.SaveChangesAsync();
         }
-        
+
         return true;
     }
 
@@ -171,7 +174,7 @@ public class GalleryService : IGalleryService
 
         return await session.LoadAsync<GalleryItem>(galleryItemId);
     }
-    
+
     private static async Task<MemoryStream> GetImageStream(IFormFile imageFile)
     {
         MemoryStream imageStream;
