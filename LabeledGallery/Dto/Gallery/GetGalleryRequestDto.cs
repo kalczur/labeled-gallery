@@ -2,5 +2,5 @@
 
 public class GetGalleryRequestDto
 {
-    public string SearchKeyword { get; set; }
+    public string? SearchKeyword { get; set; }
 }

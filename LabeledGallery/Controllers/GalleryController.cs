@@ -31,7 +31,7 @@ public class GalleryController : AbstractController
     {
         var succeed = await _galleryService.AddDetectedObject(dto, AccountEmail);
         if (succeed == false) return BadRequest();
-        
+
         return Ok();
     }
 
@@ -41,7 +41,7 @@ public class GalleryController : AbstractController
     {
         var succeed = await _galleryService.ModifyDetectedObject(dto, AccountEmail);
         if (succeed == false) return BadRequest();
-        
+
         return Ok();
     }
 

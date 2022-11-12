@@ -7,6 +7,7 @@ export interface GalleryResponseDto {
 }
 
 export interface GalleryItemResponseDto {
+  id: string;
   name: string;
   image: string;
   detectedObjects: DetectedObject[];

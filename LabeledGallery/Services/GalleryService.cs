@@ -81,13 +81,15 @@ public class GalleryService : IGalleryService
             var gallery = await session.LoadAsync<Gallery>(account.GalleryId);
 
             var galleryItems = await session.Query<GalleryItem>()
-                .Where(x =>
-                    x.GalleryId == gallery.Id &&
-                    x.DetectedObjects.Any(y => y.Label.Contains(searchKeyword)))
+                .Where(x => x.GalleryId == gallery.Id)
                 .ToListAsync();
 
-            sortedGalleryItems = galleryItems.OrderByDescending(x =>
-                    x.DetectedObjects.Where(y => y.Label.Contains(searchKeyword)).Sum(y => y.Accuracy))
+            sortedGalleryItems = galleryItems
+                .Where(x => x.DetectedObjects.Any(y =>
+                    y.Label.Contains(searchKeyword, StringComparison.OrdinalIgnoreCase)))
+                .OrderByDescending(x =>
+                    x.DetectedObjects.Where(y => y.Label.Contains(searchKeyword, StringComparison.OrdinalIgnoreCase))
+                        .Sum(y => y.Accuracy))
                 .ToList();
         }
 
@@ -103,11 +105,12 @@ public class GalleryService : IGalleryService
                 attachments.MoveNext();
 
                 var totalAccuracy = galleryItem.DetectedObjects
-                    .Where(x => x.Label.Contains(dto.SearchKeyword))
+                    .Where(x => x.Label.Contains(searchKeyword, StringComparison.OrdinalIgnoreCase))
                     .Sum(x => x.Accuracy);
 
                 galleryDto.GalleryItems.Add(new GalleryItemResponseDto
                 {
+                    Id = galleryItem.Id,
                     Name = galleryItem.Name,
                     DetectedObjects = galleryItem.DetectedObjects,
                     Image = GetImageUrl(galleryItem.Id, galleryItem.Name),
@@ -150,7 +153,8 @@ public class GalleryService : IGalleryService
             if (galleryItem == null)
                 return false;
 
-            var detectedObject = galleryItem.DetectedObjects.SingleOrDefault(x => x.Label == dto.DetectedObjectNameBefore);
+            var detectedObject =
+                galleryItem.DetectedObjects.SingleOrDefault(x => x.Label == dto.DetectedObjectNameBefore);
             if (detectedObject == null)
                 return false;
 
@@ -163,7 +167,8 @@ public class GalleryService : IGalleryService
         return true;
     }
 
-    private static async Task<GalleryItem?> GetGalleryItem(string id, string accountEmail, IAsyncDocumentSession session)
+    private static async Task<GalleryItem?> GetGalleryItem(string id, string accountEmail,
+        IAsyncDocumentSession session)
     {
         var account = await session.Query<Account>().SingleAsync(x => x.Email == accountEmail);
         var gallery = await session.LoadAsync<Gallery>(account.GalleryId);

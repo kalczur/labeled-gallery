@@ -10,7 +10,7 @@ const Stack = createNativeStackNavigator();
 const AppRoutes = () => {
   return (
     <NavigationContainer>
-      <Stack.Navigator>
+      <Stack.Navigator initialRouteName='LoginPage' screenOptions={ { headerShown: false } }>
         <Stack.Screen name='LoginPage' component={ LoginPage } />
         <Stack.Screen name='RegisterPage' component={ RegisterPage } />
         <Stack.Screen name='GalleryPage' component={ GalleryPage } />
