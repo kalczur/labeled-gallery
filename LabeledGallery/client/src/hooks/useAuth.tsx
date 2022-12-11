@@ -2,6 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 import { UserService } from "../services/UserService";
 import { LoginDto, UserInfoDto } from "../models/UserModels";
 import { Text } from "react-native";
+import { useHistory } from "react-router-native";
 
 interface UserContextDto {
   userInfo: UserInfoDto;
@@ -29,6 +30,7 @@ export const useAuth = () => {
 
 const useProvideAuth = (): UserContextDto => {
   const [userInfo, setUserInfo] = useState<UserInfoDto>();
+  const history = useHistory();
 
   const reloadUserInfo = useCallback(async () => {
     const adminInfo = await userService.getUserInfo();
@@ -38,6 +40,7 @@ const useProvideAuth = (): UserContextDto => {
   const logout = async () => {
     await userService.logout();
     await reloadUserInfo();
+    history.push("/");
   };
 
   const login = async (dto: LoginDto) => {

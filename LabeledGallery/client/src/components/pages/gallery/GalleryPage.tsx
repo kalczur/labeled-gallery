@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useAuth } from "../../../hooks/useAuth";
 import { Button, ScrollView, Text, TextInput, View, StatusBar, Dimensions, StyleSheet } from "react-native";
+import { Redirect } from "react-router-native";
 import * as MediaLibrary from "expo-media-library";
 import { GalleryService } from "../../../services/GalleryService";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -10,18 +11,10 @@ import ImageGallery from "./ImageGallery";
 
 const galleryService = new GalleryService();
 
-interface Props {
-  navigation: any;
-}
-
-const GalleryPage = ({ navigation }: Props) => {
+const GalleryPage = () => {
   const { userInfo, logout } = useAuth();
   const [_, requestPermission] = MediaLibrary.usePermissions();
   const [galleryData, setGalleryData] = useState<GalleryResponseDto>();
-
-  if (!userInfo.isAuthenticated) {
-    navigation.navigate("LoginPage");
-  }
 
   const {
     isLoading,
@@ -31,9 +24,6 @@ const GalleryPage = ({ navigation }: Props) => {
       setGalleryData(data);
     },
   });
-
-  if (isLoading) return <View><Text>Loading gallery...</Text></View>;
-  if (error) return <View><Text>Failed to load gallery</Text></View>;
 
   const queryClient = useQueryClient();
 
@@ -58,6 +48,13 @@ const GalleryPage = ({ navigation }: Props) => {
 
     await updateGalleryMutation.mutate({ imagesToAdd: albumAsset.assets.map(x => x.uri) });
   };
+
+  if (isLoading) return <View><Text>Loading gallery...</Text></View>;
+  if (error) return <View><Text>Failed to load gallery</Text></View>;
+
+  if (!userInfo.isAuthenticated) {
+    return <Redirect to='/' />;
+  }
 
   return (
     <ScrollView style={ styles.container }>

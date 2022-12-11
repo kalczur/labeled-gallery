@@ -1,5 +1,6 @@
 ﻿import React from "react";
 import { Button, Text, TextInput, View } from "react-native";
+import { Redirect, useHistory } from "react-router-native";
 import { Formik } from "formik";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { UserService } from "../../../services/UserService";
@@ -9,17 +10,9 @@ import { Picker } from "@react-native-picker/picker";
 
 const userService = new UserService();
 
-interface Props {
-  navigation: any;
-}
-
-const RegisterPage = ({ navigation }: Props) => {
+const RegisterPage = () => {
   const { userInfo } = useAuth();
-
-  if (userInfo.isAuthenticated) {
-    navigation.navigate("GalleryPage");
-  }
-
+  const history = useHistory();
   const queryClient = useQueryClient();
 
   const registerMutation = useMutation(userService.register, {
@@ -27,6 +20,10 @@ const RegisterPage = ({ navigation }: Props) => {
       await queryClient.invalidateQueries(["register"]);
     },
   });
+
+  if (userInfo.isAuthenticated) {
+    return <Redirect to='/galleryPage' />;
+  }
 
   return (
     <View>
@@ -50,7 +47,7 @@ const RegisterPage = ({ navigation }: Props) => {
 
             <TextInput
               placeholder='Password'
-              secureTextEntry={true}
+              secureTextEntry={ true }
               onChangeText={ handleChange("password") }
               value={ values.password }
             />
@@ -70,7 +67,7 @@ const RegisterPage = ({ navigation }: Props) => {
 
       <Button
         title='Login'
-        onPress={ () => navigation.navigate("LoginPage") }
+        onPress={ () => history.push("/") }
       />
 
       { registerMutation.error && <Text>Error</Text> }

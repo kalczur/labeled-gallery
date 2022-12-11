@@ -1,18 +1,16 @@
 ﻿import React from "react";
 import { Button, Dimensions, StatusBar, StyleSheet, Text, TextInput, View } from "react-native";
+import { Redirect, useHistory } from "react-router-native";
 import { Formik } from "formik";
 import { useAuth } from "../../../hooks/useAuth";
 import { LoginDto } from "../../../models/UserModels";
 
-interface Props {
-  navigation: any;
-}
-
-const LoginPage = ({ navigation }: Props) => {
+const LoginPage = () => {
   const { userInfo, login } = useAuth();
+  const history = useHistory();
 
   if (userInfo.isAuthenticated) {
-    navigation.navigate("GalleryPage");
+    return <Redirect to='/galleryPage' />;
   }
 
   return (
@@ -51,7 +49,7 @@ const LoginPage = ({ navigation }: Props) => {
         <Button
           color={ buttonSecondaryColor }
           title='Register'
-          onPress={ () => navigation.navigate("RegisterPage") }
+          onPress={ () => history.push("/registerPage") }
         />
       </View>
 
