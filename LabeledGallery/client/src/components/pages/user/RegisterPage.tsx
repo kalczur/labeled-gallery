@@ -1,5 +1,5 @@
 ﻿import React from "react";
-import { Button, Text, TextInput, View } from "react-native";
+import { Button, Dimensions, StatusBar, StyleSheet, Text, TextInput, View } from "react-native";
 import { Redirect, useHistory } from "react-router-native";
 import { Formik } from "formik";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -26,7 +26,7 @@ const RegisterPage = () => {
   }
 
   return (
-    <View>
+    <View style={ styles.container }>
       <Formik<RegisterDto>
         initialValues={ { name: "", email: "", password: "", objectsDetectionProvider: "Gcp" } }
         onSubmit={ values => registerMutation.mutate(values) }
@@ -34,18 +34,21 @@ const RegisterPage = () => {
         { ({ handleChange, handleSubmit, values }) => (
           <View>
             <TextInput
+              style={ styles.input }
               placeholder='Name'
               onChangeText={ handleChange("name") }
               value={ values.name }
             />
 
             <TextInput
+              style={ styles.input }
               placeholder='Email'
               onChangeText={ handleChange("email") }
               value={ values.email }
             />
 
             <TextInput
+              style={ styles.input }
               placeholder='Password'
               secureTextEntry={ true }
               onChangeText={ handleChange("password") }
@@ -53,6 +56,7 @@ const RegisterPage = () => {
             />
 
             <Picker
+              style={ styles.input }
               selectedValue='Gcp'
               onValueChange={ () => handleChange("password") }
               mode='dropdown'
@@ -60,20 +64,46 @@ const RegisterPage = () => {
               <Picker.Item label='Gcp' value='Gcp' />
             </Picker>
 
-            <Button onPress={ () => handleSubmit() } title='Register' />
+            <View style={ styles.button }>
+              <Button color={ buttonPrimaryColor } onPress={ () => handleSubmit() } title='Register' />
+            </View>
           </View>
         ) }
       </Formik>
 
-      <Button
-        title='Login'
-        onPress={ () => history.push("/") }
-      />
+      <View style={ styles.button }>
+        <Button
+          color={ buttonSecondaryColor }
+          title='Login'
+          onPress={ () => history.push("/") }
+        />
+      </View>
 
       { registerMutation.error && <Text>Error</Text> }
       { registerMutation.isLoading && <Text>Loading...</Text> }
     </View>
   );
 };
+
+const buttonPrimaryColor = "#36b54e";
+const buttonSecondaryColor = "#3789c4";
+
+const styles = StyleSheet.create({
+  container: {
+    marginTop: StatusBar.currentHeight,
+    padding: 4,
+    backgroundColor: "#090326",
+    color: "#fff",
+    height: Dimensions.get("window").height - StatusBar.currentHeight,
+  },
+  input: {
+    backgroundColor: "#eee",
+    marginTop: 5,
+    padding: 4,
+  },
+  button: {
+    marginTop: 10,
+  },
+});
 
 export default RegisterPage;

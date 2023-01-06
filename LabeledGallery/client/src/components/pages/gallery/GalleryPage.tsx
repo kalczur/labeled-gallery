@@ -8,6 +8,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { GalleryResponseDto, GetGalleryRequestDto } from "../../../models/GalleryModels";
 import { Formik } from "formik";
 import ImageGallery from "./ImageGallery";
+import { buttonColorSecondary } from "../../../styles/colors";
 
 const galleryService = new GalleryService();
 
@@ -46,6 +47,8 @@ const GalleryPage = () => {
     const album = await MediaLibrary.getAlbumAsync("Camera");
     const albumAsset = await MediaLibrary.getAssetsAsync({ album: album });
 
+    // TODO store last photo date and get last 20
+
     await updateGalleryMutation.mutate({ imagesToAdd: albumAsset.assets.map(x => x.uri) });
   };
 
@@ -60,10 +63,10 @@ const GalleryPage = () => {
     <ScrollView style={ styles.container }>
       <View style={ styles.topBar }>
         <View style={ { width: (Dimensions.get("window").width / 5) } }>
-          <Button color={ buttonColor } onPress={ logout } title='Logout' />
+          <Button color={ buttonColorSecondary } onPress={ logout } title='Logout' />
         </View>
         <View style={ { width: (Dimensions.get("window").width / 2) } }>
-          <Button color={ buttonColor } onPress={ sendAlbumPhotos } title='Send photos from album' />
+          <Button color={ buttonColorSecondary } onPress={ sendAlbumPhotos } title='Send photos from album' />
         </View>
       </View>
 
@@ -80,7 +83,7 @@ const GalleryPage = () => {
               value={ values.searchKeyword }
             />
             <View style={ { width: "20%" } }>
-              <Button color={ buttonColor } title='Search' onPress={ () => handleSubmit() } />
+              <Button color={ buttonColorSecondary } title='Search' onPress={ () => handleSubmit() } />
             </View>
           </View>
         ) }
@@ -101,11 +104,10 @@ const GalleryPage = () => {
   );
 };
 
-const buttonColor = "#3789c4";
-
 const styles = StyleSheet.create({
   container: {
     marginTop: StatusBar.currentHeight,
+    height: Dimensions.get("window").height - StatusBar.currentHeight,
     padding: 4,
     backgroundColor: "#07001f",
     color: "#fff",

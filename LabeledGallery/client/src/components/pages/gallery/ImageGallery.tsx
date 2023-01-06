@@ -1,30 +1,79 @@
 ﻿import React, { useState } from "react";
-import { Dimensions, Modal, StyleSheet, TouchableWithoutFeedback, View, Text } from "react-native";
-import { GalleryItemResponseDto } from "../../../models/GalleryModels";
+import {
+  Dimensions,
+  Modal,
+  StyleSheet,
+  TouchableWithoutFeedback,
+  View,
+  Text,
+  Button,
+} from "react-native";
+import { DetectedObject, GalleryItemResponseDto } from "../../../models/GalleryModels";
 import ImageElement from "./ImageElement";
+import { buttonColorSecondary } from "../../../styles/colors";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { GalleryService } from "../../../services/GalleryService";
+import ModifyLabelsModalBody from "./ModifyLabelsModalBody";
+
+const galleryService = new GalleryService();
 
 interface Props {
   galleryItems: GalleryItemResponseDto[];
 }
 
 const ImageGallery = ({ galleryItems }: Props) => {
-  if (!galleryItems) return null;
+  const [selectedImage, setSelectedImage] = useState<GalleryItemResponseDto>(null);
+  const [modalEdit, setModalEdit] = useState(false);
+  const queryClient = useQueryClient();
 
-  const [modalImage, setModalImage] = useState(null);
+  const saveLabelsMutation = useMutation(galleryService.modifyDetectedObjects, {
+    onSuccess: async () => {
+      await queryClient.invalidateQueries(["modifyDetectedObjects"]);
+    },
+  });
+
+  const saveLabels = async (detectedObjects: DetectedObject[]) => {
+    await saveLabelsMutation.mutate({
+      galleryItemId: selectedImage.id,
+      detectedObjects: detectedObjects,
+    });
+  };
+
+  if (!galleryItems) return null;
 
   return (
     <View style={ styles.container }>
-      <Modal style={ styles.modal } animationType='fade' transparent={ true } visible={ !!modalImage }
-             onRequestClose={ () => {
-             } }>
-        <View style={ styles.modal }>
-          <Text style={ styles.text } onPress={ () => setModalImage(null) }>Close</Text>
-          <ImageElement uri={ modalImage } />
-        </View>
-      </Modal>
+      { !!selectedImage &&
+        <>
+          <Modal style={ styles.modal } animationType='fade' transparent={ true } visible
+                 onRequestClose={ () => {
+                 } }>
+            <View style={ styles.modal }>
+              <Text style={ [styles.text, styles.close] } onPress={ () => setSelectedImage(null) }>Close</Text>
+              <ImageElement uri={ selectedImage.image } />
+              <Button color={ buttonColorSecondary } title='Edit labels' onPress={ () => setModalEdit(true) } />
+            </View>
+          </Modal>
+
+          <Modal
+            style={ styles.modal }
+            animationType='fade'
+            transparent={ true }
+            visible={ modalEdit }
+            onRequestClose={ () => {
+            } }
+          >
+            <ModifyLabelsModalBody
+              initialDetectedObjects={ selectedImage.detectedObjects }
+              closeModal={ () => setModalEdit(false) }
+              saveLabels={ (x) => saveLabels(x) }
+            />
+          </Modal>
+        </>
+      }
 
       { galleryItems.map(x =>
-        <TouchableWithoutFeedback key={ x.id } onPress={ () => setModalImage(x.image) }>
+        <TouchableWithoutFeedback key={ x.id } onPress={ () => setSelectedImage(x) }>
           <View style={ styles.imageWrap }>
             <ImageElement uri={ x.image } />
           </View>
@@ -48,10 +97,21 @@ const styles = StyleSheet.create({
   modal: {
     flex: 1,
     padding: 40,
-    backgroundColor: "rgba(0, 0, 0, .85)",
+    backgroundColor: "rgba(0, 0, 0, .75)",
+  },
+  close: {
+    textAlign: "right",
   },
   text: {
     color: "#fff",
+  },
+  input: {
+    backgroundColor: "#111",
+    color: "#fff",
+    padding: 4,
+  },
+  button: {
+    marginTop: 10,
   },
 });
 

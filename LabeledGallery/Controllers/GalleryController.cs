@@ -25,21 +25,14 @@ public class GalleryController : AbstractController
         return Ok(galleryDto);
     }
 
-    [Route("add-detected-object")]
+    [Route("modify-detected-objects")]
     [HttpPost]
-    public async Task<IActionResult> AddDetectedObject(AddGalleryItemDetectedObjectsRequestDto dto)
+    public async Task<IActionResult> ModifyDetectedObjects(ModifyDetectedObjectsRequestDto dto)
     {
-        var succeed = await _galleryService.AddDetectedObject(dto, AccountEmail);
-        if (succeed == false) return BadRequest();
+        if (dto.DetectedObjects.Count is 0 or > 10)
+            return BadRequest("It is only possible to add between 1 and 10 labels.");
 
-        return Ok();
-    }
-
-    [Route("modify-detected-object")]
-    [HttpPost]
-    public async Task<IActionResult> ModifyDetectedObject(ModifyGalleryItemDetectedObjectRequestDto dto)
-    {
-        var succeed = await _galleryService.ModifyDetectedObject(dto, AccountEmail);
+        var succeed = await _galleryService.ModifyDetectedObjects(dto, AccountEmail);
         if (succeed == false) return BadRequest();
 
         return Ok();

@@ -43,7 +43,8 @@ public class GalleryService : IGalleryService
                 .Select(x => new DetectedObject
                 {
                     Label = x.Description,
-                    Accuracy = x.Score
+                    Accuracy = x.Score,
+                    DetectionProvider = DetectionProvider.Gcp
                 })
                 .ToList();
 
@@ -122,7 +123,7 @@ public class GalleryService : IGalleryService
         return galleryDto;
     }
 
-    public async Task<bool> AddDetectedObject(AddGalleryItemDetectedObjectsRequestDto dto, string accountEmail)
+    public async Task<bool> ModifyDetectedObjects(ModifyDetectedObjectsRequestDto dto, string accountEmail)
     {
         using (var session = OpenAsyncSession())
         {
@@ -130,36 +131,23 @@ public class GalleryService : IGalleryService
             if (galleryItem == null)
                 return false;
 
-            if (galleryItem.DetectedObjects.Exists(x => x.Label == dto.DetectedObject))
-                return false;
-
-            galleryItem.DetectedObjects.Add(new DetectedObject
+            foreach (var detectedObject in dto.DetectedObjects)
             {
-                Accuracy = 1,
-                Label = dto.DetectedObject
-            });
+                var existingObject = galleryItem.DetectedObjects.SingleOrDefault(x => x.Id == detectedObject.Id);
 
-            await session.SaveChangesAsync();
-        }
+                if (existingObject != null)
+                {
+                    existingObject.Label = detectedObject.Label;
+                    continue;
+                }
 
-        return true;
-    }
-
-    public async Task<bool> ModifyDetectedObject(ModifyGalleryItemDetectedObjectRequestDto dto, string accountEmail)
-    {
-        using (var session = OpenAsyncSession())
-        {
-            var galleryItem = await GetGalleryItem(dto.GalleryItemId, accountEmail, session);
-            if (galleryItem == null)
-                return false;
-
-            var detectedObject =
-                galleryItem.DetectedObjects.SingleOrDefault(x => x.Label == dto.DetectedObjectNameBefore);
-            if (detectedObject == null)
-                return false;
-
-            detectedObject.Label = dto.DetectedObjectNameAfter;
-            detectedObject.Accuracy = 1;
+                galleryItem.DetectedObjects.Add(new DetectedObject
+                {
+                    Label = detectedObject.Label,
+                    Accuracy = 1,
+                    DetectionProvider = DetectionProvider.User
+                });
+            }
 
             await session.SaveChangesAsync();
         }

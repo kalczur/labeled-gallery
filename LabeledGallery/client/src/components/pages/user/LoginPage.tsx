@@ -4,6 +4,7 @@ import { Redirect, useHistory } from "react-router-native";
 import { Formik } from "formik";
 import { useAuth } from "../../../hooks/useAuth";
 import { LoginDto } from "../../../models/UserModels";
+import { buttonColorPrimary, buttonColorSecondary } from "../../../styles/colors";
 
 const LoginPage = () => {
   const { userInfo, login } = useAuth();
@@ -37,7 +38,7 @@ const LoginPage = () => {
             />
 
             <View style={ styles.button }>
-              <Button color={ buttonPrimaryColor } onPress={ () => handleSubmit() } title='Login' />
+              <Button color={ buttonColorPrimary } onPress={ () => handleSubmit() } title='Login' />
             </View>
 
             { isSubmitting && <Text>Loading...</Text> }
@@ -47,18 +48,14 @@ const LoginPage = () => {
 
       <View style={ styles.button }>
         <Button
-          color={ buttonSecondaryColor }
+          color={ buttonColorSecondary }
           title='Register'
           onPress={ () => history.push("/registerPage") }
         />
       </View>
-
     </View>
   );
 };
-
-const buttonPrimaryColor = "#36b54e";
-const buttonSecondaryColor = "#3789c4";
 
 const styles = StyleSheet.create({
   container: {
@@ -69,7 +66,7 @@ const styles = StyleSheet.create({
     height: Dimensions.get("window").height - StatusBar.currentHeight,
   },
   input: {
-    backgroundColor: "#ccc",
+    backgroundColor: "#eee",
     marginTop: 5,
     padding: 4,
   },

@@ -1,5 +1,10 @@
 import { apiClient } from "./ApiClient";
-import { GalleryResponseDto, GetGalleryRequestDto, UpdateGalleryItemsRequestDto } from "../models/GalleryModels";
+import {
+  GalleryResponseDto,
+  GetGalleryRequestDto,
+  ModifyDetectedObjectsRequestDto,
+  UpdateGalleryItemsRequestDto,
+} from "../models/GalleryModels";
 import mime from "mime";
 
 const normalizeUri = (uri: string) => "file:///" + uri.split("file:/").join("");
@@ -33,5 +38,10 @@ export class GalleryService {
         "Content-Type": "multipart/form-data",
       },
     });
+  }
+
+  async modifyDetectedObjects(dto?: ModifyDetectedObjectsRequestDto): Promise<void> {
+    const result = await apiClient.post("gallery/modify-detected-objects", dto);
+    return result.data;
   }
 }
