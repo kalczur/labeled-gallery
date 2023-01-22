@@ -5,10 +5,10 @@ import { Redirect } from "react-router-native";
 import * as MediaLibrary from "expo-media-library";
 import { GalleryService } from "../../../services/GalleryService";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { GalleryResponseDto, GetGalleryRequestDto } from "../../../models/GalleryModels";
+import { DetectedObject, GalleryResponseDto, GetGalleryRequestDto } from "../../../models/GalleryModels";
 import { Formik } from "formik";
 import ImageGallery from "./ImageGallery";
-import { buttonColorSecondary } from "../../../styles/colors";
+import { buttonColorDisabled, buttonColorSecondary } from "../../../styles/colors";
 
 const galleryService = new GalleryService();
 
@@ -38,6 +38,7 @@ const GalleryPage = () => {
   const updateGalleryMutation = useMutation(galleryService.update, {
     onSuccess: async () => {
       await queryClient.invalidateQueries(["updateGallery"]);
+      getGalleryMutation.mutate({ searchKeyword: "" });
     },
   });
 
@@ -52,8 +53,17 @@ const GalleryPage = () => {
     await updateGalleryMutation.mutate({ imagesToAdd: albumAsset.assets.map(x => x.uri) });
   };
 
-  if (isLoading) return <View><Text>Loading gallery...</Text></View>;
-  if (error) return <View><Text>Failed to load gallery</Text></View>;
+  const optimisticUpdate = (id: string, detectedObjects: DetectedObject[]) => {
+    setGalleryData(prevState => {
+      const newState = { ...prevState };
+      newState.galleryItems.find(x => x.id).detectedObjects = detectedObjects;
+      return newState;
+    });
+  };
+
+  if (isLoading) return <View style={ styles.container }><Text style={ styles.text }>Loading gallery...</Text></View>;
+  if (error) return <View style={ styles.container }><Text style={ styles.textError }>Failed to load
+    gallery.</Text></View>;
 
   if (!userInfo.isAuthenticated) {
     return <Redirect to='/' />;
@@ -66,7 +76,11 @@ const GalleryPage = () => {
           <Button color={ buttonColorSecondary } onPress={ logout } title='Logout' />
         </View>
         <View style={ { width: (Dimensions.get("window").width / 2) } }>
-          <Button color={ buttonColorSecondary } onPress={ sendAlbumPhotos } title='Send photos from album' />
+          <Button
+            color={ updateGalleryMutation.isLoading ? buttonColorDisabled : buttonColorSecondary }
+            onPress={ sendAlbumPhotos } title='Send photos from album'
+            disabled={ updateGalleryMutation.isLoading || getGalleryMutation.isLoading }
+          />
         </View>
       </View>
 
@@ -83,20 +97,25 @@ const GalleryPage = () => {
               value={ values.searchKeyword }
             />
             <View style={ { width: "20%" } }>
-              <Button color={ buttonColorSecondary } title='Search' onPress={ () => handleSubmit() } />
+              <Button
+                color={ buttonColorSecondary }
+                title='Search'
+                onPress={ () => handleSubmit() }
+                disabled={ updateGalleryMutation.isLoading || getGalleryMutation.isLoading }
+              />
             </View>
           </View>
         ) }
       </Formik>
 
-      { updateGalleryMutation.isLoading && <Text>Sending photos...</Text> }
-      { updateGalleryMutation.error && <Text>Fail to send</Text> }
+      { updateGalleryMutation.isLoading && <Text style={ styles.text }>Sending photos...</Text> }
+      { updateGalleryMutation.error && <Text style={ styles.textError }>Fail to send</Text> }
 
-      { getGalleryMutation.isLoading && <Text style={ { color: "#ccc" } }>Loading gallery...</Text> }
+      { getGalleryMutation.isLoading && <Text style={ styles.text }>Loading gallery...</Text> }
 
       { galleryData && (
         <View style={ { marginTop: 20 } }>
-          <ImageGallery galleryItems={ galleryData.galleryItems } />
+          <ImageGallery galleryItems={ galleryData.galleryItems } optimisticUpdate={ optimisticUpdate } />
         </View>
       ) }
 
@@ -126,6 +145,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#c5d2e8",
     color: "#000",
     padding: 4,
+  },
+  text: {
+    color: "#ccc",
+  },
+  textError: {
+    color: "#c00",
   },
 });
 

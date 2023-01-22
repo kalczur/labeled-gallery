@@ -23,37 +23,54 @@ const ModifyLabelsItem = ({ detectedObject, removeLabel, editLabel, initialInEdi
     <View style={ [styles.detectedObject, detectedObject.detectionProvider === "User" && styles.userLabel] }>
       { detectedObject.detectionProvider === "User" ?
         (<View>
-            <View style={ styles.detectedObjectButtons }>
+            <View style={ styles.detectedObjectRow }>
               { inEditMode ? (
                 <>
                   <TextInput
-                    style={ styles.text }
+                    style={ styles.input }
                     value={ label }
                     placeholder='Label'
+                    placeholderTextColor='#bbb'
                     onChangeText={ x => setLabel(x) }
                   />
-                  <Button color={ buttonColorDanger } title='Cancel' onPress={ () => cancel() } />
-                  <Button color={ buttonColorSecondary } title='Save' onPress={ () => editLabel(label) } />
+                  <View style={ styles.detectedObjectButtons }>
+                    <View>
+                      <Button color={ buttonColorDanger } title='Cancel' onPress={ () => cancel() } />
+                    </View>
+                    <View style={ { marginLeft: 5 } }>
+                      <Button color={ buttonColorSecondary } title='Save' onPress={ () => {
+                        editLabel(label);
+                        setInEditMode(false);
+                      } } />
+                    </View>
+                  </View>
                 </>
               ) : (
                 <>
-                  <Text style={ styles.text }>{ label }</Text>
-                  <Button color={ buttonColorDanger } title='Remove' onPress={ () => removeLabel() } />
-                  <Button color={ buttonColorSecondary } title='Edit' onPress={ () => setInEditMode(true) } />
+                  <Text style={ styles.textLabel }>{ label }</Text>
+                  <View style={ styles.detectedObjectButtons }>
+                    <View>
+                      <Button color={ buttonColorDanger } title='Remove' onPress={ () => removeLabel() } />
+                    </View>
+                    <View style={ { marginLeft: 5 } }>
+                      <Button color={ buttonColorSecondary } title='Edit' onPress={ () => setInEditMode(true) } />
+                    </View>
+                  </View>
                 </>
               ) }
             </View>
           </View>
         ) : (
-          <Text style={ styles.text }>{ label }</Text>
+          <Text style={ styles.textLabel }>{ label }</Text>
         ) }
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  text: {
+  textLabel: {
     color: "#fff",
+    width: "60%",
   },
   detectedObject: {
     flexDirection: "row",
@@ -64,11 +81,21 @@ const styles = StyleSheet.create({
     padding: 6,
     marginTop: 5,
   },
-  detectedObjectButtons: {
+  detectedObjectRow: {
     flexDirection: "row",
+  },
+  detectedObjectButtons: {
+    width: "40%",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
   },
   userLabel: {
     backgroundColor: "#333",
+  },
+  input: {
+    color: "#fff",
+    width: "60%",
   },
 });
 

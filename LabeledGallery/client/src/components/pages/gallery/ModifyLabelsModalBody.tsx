@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { DetectedObject } from "../../../models/GalleryModels";
 import { Button, ScrollView, StyleSheet, Text, View } from "react-native";
 import { buttonColorPrimary, buttonColorSecondary } from "../../../styles/colors";
 import ModifyLabelsItem from "./ModifyLabelsItem";
+import uuid from "react-native-uuid";
 
 interface Props {
   initialDetectedObjects: DetectedObject[];
@@ -13,24 +14,24 @@ interface Props {
 const ModifyLabelsModalBody = ({ initialDetectedObjects, closeModal, saveLabels }: Props) => {
   const [detectedObjects, setDetectedObjects] = useState<DetectedObject[]>(initialDetectedObjects);
   const [idsInEditMode, setIdsInEditMode] = useState<string[]>([]);
+  const scrollRef = useRef<ScrollView>();
 
   const removeLabel = (id: string) => {
-    setDetectedObjects(prevState => prevState.filter(x => x.id === id));
+    setDetectedObjects(prevState => prevState.filter(x => x.id !== id));
   };
 
   const editLabel = (id: string, editedLabel: string) => {
     setDetectedObjects(prevState => {
       const newState = [...prevState];
-      newState[id] = { ...newState.find(x => x.id === id), label: editedLabel };
+      newState.find(x => x.id === id).label = editedLabel;
       return newState;
     });
 
-    setDetectedObjects(prevState => prevState.filter(x => x.id === id));
+    setIdsInEditMode(prevState => prevState.filter(x => x !== id));
   };
 
   const addLabel = () => {
-    // @ts-ignore
-    const id = crypto.randomUUID();
+    const id = uuid.v4().toString();
 
     setDetectedObjects(prevState => [...prevState, {
       id,
@@ -45,7 +46,10 @@ const ModifyLabelsModalBody = ({ initialDetectedObjects, closeModal, saveLabels 
   return (
     <View style={ styles.modal }>
       <Text style={ [styles.text, styles.close] } onPress={ () => closeModal() }>Close</Text>
-      <ScrollView>
+      <ScrollView
+        ref={ scrollRef }
+        onContentSizeChange={ () => scrollRef.current.scrollToEnd({ animated: true }) }
+      >
         { detectedObjects.map(x => (
           <ModifyLabelsItem
             key={ x.id }
@@ -60,7 +64,14 @@ const ModifyLabelsModalBody = ({ initialDetectedObjects, closeModal, saveLabels 
         <Button color={ buttonColorSecondary } title='Add' onPress={ () => addLabel() } />
       </View>
       <View style={ styles.button }>
-        <Button color={ buttonColorPrimary } title='Save' onPress={ () => saveLabels(detectedObjects) } />
+        <Button
+          color={ buttonColorPrimary }
+          title='Save'
+          onPress={ () => {
+            saveLabels(detectedObjects);
+            closeModal();
+          } }
+        />
       </View>
     </View>
   );

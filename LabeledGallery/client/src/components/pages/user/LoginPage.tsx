@@ -1,4 +1,4 @@
-﻿import React from "react";
+﻿import React, { useState } from "react";
 import { Button, Dimensions, StatusBar, StyleSheet, Text, TextInput, View } from "react-native";
 import { Redirect, useHistory } from "react-router-native";
 import { Formik } from "formik";
@@ -8,19 +8,30 @@ import { buttonColorPrimary, buttonColorSecondary } from "../../../styles/colors
 
 const LoginPage = () => {
   const { userInfo, login } = useAuth();
+  const [loginError, setLoginError] = useState(false);
   const history = useHistory();
 
   if (userInfo.isAuthenticated) {
     return <Redirect to='/galleryPage' />;
   }
 
+  const onLogin = async (values: LoginDto) => {
+    setLoginError(false);
+
+    try {
+      await login(values);
+    } catch (_) {
+      setLoginError(true);
+    }
+  };
+
   return (
     <View style={ styles.container }>
       <Formik<LoginDto>
         initialValues={ { email: "", password: "" } }
-        onSubmit={ values => login(values) }
+        onSubmit={ onLogin }
       >
-        { ({ handleChange, handleSubmit, values, isSubmitting, errors }) => (
+        { ({ handleChange, handleSubmit, values, isSubmitting }) => (
           <View>
             <TextInput
               style={ styles.input }
@@ -41,7 +52,8 @@ const LoginPage = () => {
               <Button color={ buttonColorPrimary } onPress={ () => handleSubmit() } title='Login' />
             </View>
 
-            { isSubmitting && <Text>Loading...</Text> }
+            { isSubmitting && <Text style={ styles.text }>Loading...</Text> }
+            { loginError && <Text style={ styles.textError }>Incorrect email or password.</Text> }
           </View>
         ) }
       </Formik>
@@ -72,6 +84,12 @@ const styles = StyleSheet.create({
   },
   button: {
     marginTop: 10,
+  },
+  text: {
+    color: "#ccc",
+  },
+  textError: {
+    color: "#c00",
   },
 });
 

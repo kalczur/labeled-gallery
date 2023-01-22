@@ -19,16 +19,18 @@ const galleryService = new GalleryService();
 
 interface Props {
   galleryItems: GalleryItemResponseDto[];
+  optimisticUpdate: (id: string, detectedObjects: DetectedObject[]) => void;
 }
 
-const ImageGallery = ({ galleryItems }: Props) => {
+const ImageGallery = ({ galleryItems, optimisticUpdate }: Props) => {
   const [selectedImage, setSelectedImage] = useState<GalleryItemResponseDto>(null);
   const [modalEdit, setModalEdit] = useState(false);
   const queryClient = useQueryClient();
 
   const saveLabelsMutation = useMutation(galleryService.modifyDetectedObjects, {
-    onSuccess: async () => {
+    onSuccess: async (_, values) => {
       await queryClient.invalidateQueries(["modifyDetectedObjects"]);
+      optimisticUpdate(selectedImage.id, values.detectedObjects);
     },
   });
 

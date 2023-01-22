@@ -29,8 +29,8 @@ public class GalleryController : AbstractController
     [HttpPost]
     public async Task<IActionResult> ModifyDetectedObjects(ModifyDetectedObjectsRequestDto dto)
     {
-        if (dto.DetectedObjects.Count is 0 or > 10)
-            return BadRequest("It is only possible to add between 1 and 10 labels.");
+        if (dto.DetectedObjects.Count is 0 or > 20)
+            return BadRequest("It is only possible to add between 1 and 20 labels.");
 
         var succeed = await _galleryService.ModifyDetectedObjects(dto, AccountEmail);
         if (succeed == false) return BadRequest();
