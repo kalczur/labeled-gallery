@@ -1,4 +1,10 @@
-[React native](https://reactnative.dev) photo gallery app, which enables you to quickly and easily search for photos containing specific objects you are looking for.
+Photo gallery app, which enables you to quickly and easily search for photos containing specific objects you are looking for.
+
+The project uses:
+- Google Cloud Vision API
+- RavenDB
+- ASP .NET
+- React Native + typescript
 
 <hr/>
 
